@@ -1,8 +1,11 @@
 const router = require("express").Router();
 
-router.get("/", (req, res) =>{
-    res.send("hey its user route")
-})
+// Update User
+// Delete User
+// Get a User
+// Follow a User
+// Unfollow a User
+
 
 
 
