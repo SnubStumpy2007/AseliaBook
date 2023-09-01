@@ -58,6 +58,29 @@ router.put("/:id/like", async (req, res) => {
 })
 
 // get a post
+router.get("/:id", async (req,res) => {
+    try {
+        const post = post.findById(req.params.id)
+        res.status(200).json(post)
+    } catch {
+        res.status(500).json(err)
+    }
+})
+
 // get all timeline posts
+router.get("/timeline", async (req,res) => {
+    try {
+        const currentUser = await user.findbyId(req.body.userId);
+        const userPosts = await post.find({ userId: currentUser._id});
+        const friendPosts = await Promise.all(
+            currentUser.followings.map((friendId) => {
+
+            })
+        );
+        res.json(userPosts.concat(...friendPosts))
+    } catch {
+        res.status(500).json(err)
+    }
+})
 
 module.exports = router;
