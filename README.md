@@ -84,3 +84,6 @@ Contributions to this project are welcome. To contribute, follow these steps:
 
 ## License
 This project is licensed under the MIT License. 
+
+## Sources
+https://www.youtube.com/watch?v=ldGl6L4Vktk&t=4469s
