@@ -1,86 +1,92 @@
 const router = require("express").Router();
-const post = require("../models/post");
-const { findById } = require("../models/user");
+const Post = require("../models/post");
+const User = require("../models/user"); // Import User model
 
-// create a post
-router.post("/", async (req,res) => {
-    const newPost = new post(req.body)
-    try{
-        const savePost = await newPost.save();
-    } catch {
-        res.status(500).json(err)
-    }
-})
+// Create a post
+router.post("/", async (req, res) => {
+  const newPost = new Post(req.body); // Note the capital 'P' in 'Post'
 
-// update a post
+  try {
+    const savedPost = await newPost.save();
+    res.status(201).json(savedPost); // Send a 201 (Created) status and the saved post as a response
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Internal Server Error" }); // Send an error response
+  }
+});
+
+// Update a post
 router.put("/:id", async (req, res) => {
-    try{
-        const post = post.findById(req.params.id)
-        if (post.userId === req.body.userId){
-            await post.updateOne({$set:req.body})
-            res.status(200).json("Post Updated")
-        } else {
-            res.status(403).json("you can only update you post")
-        }
-    } catch(err) {
-        res.status(500).json(err)
+  try {
+    const postToUpdate = await Post.findById(req.params.id);
+    if (postToUpdate.userId === req.body.userId) {
+      await postToUpdate.updateOne({ $set: req.body });
+      res.status(200).json("Post Updated");
+    } else {
+      res.status(403).json("You can only update your post");
     }
-})
+  } catch (err) {
+    console.error(err);
+    res.status(500).json(err);
+  }
+});
 
-// delete a post
+// Delete a post
 router.delete("/:id", async (req, res) => {
-    try{
-        const post = post.findById(req.params.id)
-        if (post.userId === req.body.userId){
-            await post.deleteOne({$set:req.body})
-            res.status(200).json("Post Deleted")
-        } else {
-            res.status(403).json("you can only delete you post")
-        }
-    } catch(err) {
-        res.status(500).json(err)
+  try {
+    const postToDelete = await Post.findById(req.params.id);
+    if (postToDelete.userId === req.body.userId) {
+      await postToDelete.deleteOne();
+      res.status(200).json("Post Deleted");
+    } else {
+      res.status(403).json("You can only delete your post");
     }
-})
+  } catch (err) {
+    console.error(err);
+    res.status(500).json(err);
+  }
+});
 
-// like and dislike a post
+// Like and dislike a post
 router.put("/:id/like", async (req, res) => {
-    try {
-        if(!post.likes.includes(req.body.userId)) {
-            await post.updateOne({$push: { likes: req.body.userId}})
-            res.status(200).json("Post has been liked")
-        } else {
-            await post.updateOne({ $pull: {likes: req.body.userId}})
-            res.status(200).json("Post has been unliked")
-        }
-    } catch {
-        res.status(500).json("failed to like post")
+  try {
+    const post = await Post.findById(req.params.id);
+    if (!post.likes.includes(req.body.userId)) {
+      await post.updateOne({ $push: { likes: req.body.userId } });
+      res.status(200).json("Post has been liked");
+    } else {
+      await post.updateOne({ $pull: { likes: req.body.userId } });
+      res.status(200).json("Post has been unliked");
     }
-})
+  } catch (err) {
+    console.error(err);
+    res.status(500).json("Failed to like/unlike post");
+  }
+});
 
-// get a post
-router.get("/:id", async (req,res) => {
-    try {
-        const post = post.findById(req.params.id)
-        res.status(200).json(post)
-    } catch {
-        res.status(500).json(err)
-    }
-})
+// Get a post
+router.get("/:id", async (req, res) => {
+  try {
+    const post = await Post.findById(req.params.id);
+    res.status(200).json(post);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json(err);
+  }
+});
 
-// get all timeline posts
-router.get("/timeline", async (req,res) => {
-    try {
-        const currentUser = await user.findbyId(req.body.userId);
-        const userPosts = await post.find({ userId: currentUser._id});
-        const friendPosts = await Promise.all(
-            currentUser.followings.map((friendId) => {
+// Get all timeline posts
+router.get("/timeline", async (req, res) => {
+  try {
+    const currentUser = await User.findById(req.body.userId); // Use User model
+    const userPosts = await Post.find({ userId: currentUser._id });
 
-            })
-        );
-        res.json(userPosts.concat(...friendPosts))
-    } catch {
-        res.status(500).json(err)
-    }
-})
+
+    res.json(userPosts.concat(...friendPosts));
+  } catch (err) {
+    console.error(err);
+    res.status(500).json(err);
+  }
+});
 
 module.exports = router;
